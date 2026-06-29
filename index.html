@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ball Drop Through Fluid Lab</title>
+  <style>
+    :root {
+      --slate-50: #f8fafc;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-300: #cbd5e1;
+      --slate-500: #64748b;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --slate-800: #1e293b;
+      --slate-900: #0f172a;
+      --blue-50: #eff6ff;
+      --blue-100: #dbeafe;
+      --blue-600: #2563eb;
+      --blue-700: #1d4ed8;
+      --blue-900: #1e3a8a;
+      --indigo-50: #eef2ff;
+      --indigo-100: #e0e7ff;
+      --indigo-950: #1e1b4b;
+      --green-700: #15803d;
+      --red-700: #b91c1c;
+      --white: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--slate-50);
+      color: var(--slate-900);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+    }
+
+    .page { padding: 1rem; }
+    .container { max-width: 1152px; margin: 0 auto; display: grid; gap: 1.5rem; }
+
+    .header, .card {
+      background: var(--white);
+      border: 1px solid var(--slate-200);
+      border-radius: 1.5rem;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    }
+
+    .header { padding: 1.5rem; }
+    .header-layout { display: flex; flex-direction: column; gap: 1rem; }
+    h1, h2, h3, p { margin: 0; }
+
+    h1 {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: clamp(1.8rem, 4vw, 2.4rem);
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    h2 { font-size: 1.25rem; }
+    h3 { font-size: 1rem; }
+    .subtext { margin-top: 0.5rem; max-width: 48rem; color: var(--slate-600); }
+
+    .distance-badge {
+      align-self: flex-start;
+      min-width: 170px;
+      padding: 1rem 1.25rem;
+      text-align: center;
+      background: var(--blue-50);
+      border: 1px solid var(--blue-100);
+      border-radius: 1rem;
+    }
+    .distance-badge .label { color: var(--blue-700); font-size: 0.875rem; font-weight: 600; }
+    .distance-badge .value { color: var(--blue-900); font-size: 1.5rem; font-weight: 800; }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+    .card-content { padding: 1.5rem; }
+    .stack { display: grid; gap: 1.25rem; }
+    .section-title { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; }
+
+    label { display: block; }
+    label span { display: block; margin-bottom: 0.5rem; color: var(--slate-700); font-size: 0.875rem; font-weight: 600; }
+
+    select, button {
+      font: inherit;
+    }
+
+    select {
+      width: 100%;
+      padding: 0.8rem;
+      background: var(--white);
+      color: var(--slate-900);
+      border: 1px solid var(--slate-300);
+      border-radius: 1rem;
+      outline: none;
+    }
+    select:focus { border-color: var(--blue-600); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18); }
+
+    .properties, .directions, .discussion, .stopwatch, .notice {
+      border-radius: 1rem;
+      padding: 1rem;
+    }
+
+    .properties { background: var(--indigo-50); border: 1px solid var(--indigo-100); color: var(--indigo-950); }
+    .properties-data { margin-top: 0.5rem; display: grid; gap: 0.25rem; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.78rem; text-align: left; }
+    .directions { background: var(--slate-50); border: 1px solid var(--slate-200); }
+    .directions p { margin-top: 0.5rem; color: var(--slate-700); font-size: 0.9rem; }
+    .discussion { background: var(--blue-50); border: 1px solid var(--blue-100); color: var(--blue-900); font-size: 0.9rem; }
+    .notice { display: none; background: #f0fdf4; border: 1px solid #bbf7d0; color: #14532d; font-size: 0.9rem; }
+
+    .stopwatch { background: var(--slate-50); border: 1px solid var(--slate-200); }
+    .stopwatch-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .stopwatch-label { display: flex; align-items: center; gap: 0.4rem; color: var(--slate-600); font-size: 0.9rem; font-weight: 600; }
+    .status { color: var(--slate-500); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; }
+    .time { margin-top: 0.4rem; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 2.4rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .hint { margin-top: 0.3rem; color: var(--slate-500); font-size: 0.78rem; }
+
+    .button-grid { display: grid; gap: 0.75rem; }
+    button {
+      width: 100%;
+      padding: 0.9rem 1rem;
+      border-radius: 1rem;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-weight: 700;
+      transition: transform 120ms ease, opacity 120ms ease, background 120ms ease;
+    }
+    button:active:not(:disabled) { transform: translateY(1px); }
+    button:disabled { cursor: not-allowed; opacity: 0.55; }
+    .primary { background: var(--slate-900); color: white; }
+    .secondary { background: var(--slate-100); color: var(--slate-900); border-color: var(--slate-200); }
+    .outline { background: white; color: var(--slate-900); border-color: var(--slate-300); }
+
+    .column-wrap { text-align: center; }
+    .fluid-column {
+      position: relative;
+      width: 12rem;
+      height: 620px;
+      margin: 1rem auto 0;
+      background: white;
+      border: 4px solid var(--slate-300);
+      border-radius: 2rem;
+      overflow: hidden;
+      box-shadow: inset 0 2px 10px rgba(15, 23, 42, 0.12);
+    }
+    .fluid-fill { position: absolute; inset: 0; opacity: 0.75; }
+    .mark { position: absolute; left: 0; right: 0; z-index: 20; border-top: 4px dashed; }
+    .start-line { top: 85px; border-color: var(--green-700); }
+    .stop-line { bottom: 90px; border-color: var(--red-700); }
+    .tag {
+      position: absolute;
+      left: 0.5rem;
+      z-index: 21;
+      padding: 0.25rem 0.5rem;
+      border-radius: 999px;
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 800;
+    }
+    .start-tag { top: 62px; background: var(--green-700); }
+    .stop-tag { bottom: 66px; background: var(--red-700); }
+    .distance-line { position: absolute; right: 0.5rem; top: 95px; bottom: 100px; width: 4px; z-index: 20; background: rgba(30, 41, 59, 0.65); }
+    .distance-label { position: absolute; right: 1rem; top: 50%; z-index: 20; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.85); border-radius: 0.7rem; font-size: 0.75rem; font-weight: 700; box-shadow: 0 1px 3px rgba(15,23,42,0.18); }
+    .ball {
+      position: absolute;
+      left: 50%;
+      top: 34px;
+      z-index: 30;
+      width: 2.5rem;
+      height: 2.5rem;
+      margin-left: -1.25rem;
+      border-radius: 999px;
+      background: var(--slate-900);
+      box-shadow: 0 10px 18px rgba(15, 23, 42, 0.28);
+      border: 4px solid rgba(255,255,255,0.85);
+    }
+    .surface-glare { position: absolute; left: 0; right: 0; top: 0; height: 2.5rem; background: rgba(255,255,255,0.4); }
+    .column-caption { margin-top: 1rem; color: var(--slate-600); font-size: 0.9rem; text-align: left; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th { padding: 0.75rem; background: var(--slate-100); color: var(--slate-700); text-align: left; }
+    td { padding: 0.75rem; border-top: 1px solid var(--slate-200); background: white; }
+    .table-box { overflow: hidden; border: 1px solid var(--slate-200); border-radius: 1rem; }
+    .right { text-align: right; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+
+    .icon { width: 1.1rem; height: 1.1rem; display: inline-block; vertical-align: -0.18rem; }
+    .title-icon { color: var(--blue-600); font-size: 2.2rem; }
+
+    @media (min-width: 900px) {
+      .page { padding: 2rem; }
+      .header-layout { flex-direction: row; align-items: center; justify-content: space-between; }
+      .distance-badge { align-self: center; }
+      .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="container">
+      <header class="header">
+        <div class="header-layout">
+          <div>
+            <h1><span class="title-icon">⚗️</span> Ball Drop Through Fluid Lab</h1>
+            <p class="subtext">Choose a fluid, select a trial number, drop the ball, and stop the stopwatch when the ball reaches the lower timing mark. Use the collected times and fluid viscosities to fit a relationship.</p>
+          </div>
+          <div class="distance-badge">
+            <div class="label">Timing distance</div>
+            <div class="value">0.50 m</div>
+          </div>
+        </div>
+      </header>
+
+      <section class="grid">
+        <article class="card">
+          <div class="card-content stack">
+            <h2 class="section-title">💧 Controls</h2>
+
+            <label>
+              <span>Fluid</span>
+              <select id="fluidSelect"></select>
+            </label>
+
+            <div class="properties">
+              <h3>Fluid Properties</h3>
+              <div class="properties-data">
+                <div id="viscosityText">Viscosity, μ: —</div>
+                <div id="densityText">Density: —</div>
+              </div>
+            </div>
+
+            <label>
+              <span>Trial #</span>
+              <select id="trialSelect"></select>
+            </label>
+
+            <div class="stopwatch">
+              <div class="stopwatch-row">
+                <span class="stopwatch-label">⏱️ Stopwatch</span>
+                <span id="statusText" class="status">ready</span>
+              </div>
+              <div id="timeDisplay" class="time">0.00 s</div>
+              <p class="hint">The stopwatch starts automatically when the ball crosses the green start mark.</p>
+            </div>
+
+            <div class="button-grid">
+              <button id="dropButton" class="primary">▶ Drop Ball</button>
+              <button id="stopButton" class="secondary" disabled>Stop Stopwatch at Lower Mark</button>
+              <button id="resetButton" class="outline">↻ Reset Current Trial</button>
+              <button id="clearButton" class="outline">Clear All Results</button>
+            </div>
+
+            <div id="recordedNotice" class="notice">Trial already has a recorded time. Running the trial again will replace that value.</div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-content column-wrap">
+            <h2>Animated Fluid Column</h2>
+            <div class="fluid-column">
+              <div id="fluidFill" class="fluid-fill"></div>
+              <div class="mark start-line"></div>
+              <div class="tag start-tag">START TIMER MARK</div>
+              <div class="mark stop-line"></div>
+              <div class="tag stop-tag">STOP TIMER MARK</div>
+              <div class="distance-line"></div>
+              <div class="distance-label">0.50 m</div>
+              <div id="ball" class="ball"></div>
+              <div class="surface-glare"></div>
+            </div>
+            <p class="column-caption">The animation speed changes with fluid viscosity and includes small random scatter from trial to trial.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-content stack">
+            <div class="directions">
+              <h3>Student Directions</h3>
+              <p>Choose a fluid, select a trial number, drop the ball, and stop the stopwatch when the ball reaches the lower timing mark. Use the collected times and fluid viscosities to fit a relationship.</p>
+            </div>
+
+            <h2>Trial Results</h2>
+            <div class="table-box">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Trial</th>
+                    <th>Fluid</th>
+                    <th class="right">μ</th>
+                    <th class="right">Time</th>
+                  </tr>
+                </thead>
+                <tbody id="resultsBody"></tbody>
+              </table>
+            </div>
+
+            <div class="discussion"><strong>Discussion idea:</strong> Which model gives the better fit for your data: a power law or an exponential? How do the fitted parameters change if you repeat the experiment?</div>
+          </div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const g = 9.81;
+    const ballRadiusMeters = 0.002;
+    const ballDensity = 7850;
+    const distanceMeters = 0.5;
+    const noiseFraction = 0.035;
+
+    const fluids = [
+      { name: "Water", viscosityPaS: 0.00089, density: 997, color: "#60a5fa" },
+      { name: "Olive oil", viscosityPaS: 0.084, density: 910, color: "#facc15" },
+      { name: "Vegetable oil", viscosityPaS: 0.065, density: 920, color: "#fbbf24" },
+      { name: "Mineral oil", viscosityPaS: 0.12, density: 850, color: "#fde68a" },
+      { name: "Motor oil", viscosityPaS: 0.25, density: 880, color: "#a16207" },
+      { name: "Castor oil", viscosityPaS: 0.65, density: 960, color: "#c2410c" },
+      { name: "Glycerol", viscosityPaS: 0.95, density: 1260, color: "#c084fc" },
+      { name: "Honey", viscosityPaS: 5.0, density: 1420, color: "#d97706" },
+      { name: "Corn syrup", viscosityPaS: 4.0, density: 1380, color: "#f59e0b" }
+    ];
+
+    const trialNumbers = [1, 2, 3, 4, 5];
+    const animationStartTopPx = 34;
+    const startMarkTopPx = 85;
+    const stopMarkTopPx = 530;
+    const ballStopTopPx = 518;
+    const approachFraction = (startMarkTopPx - animationStartTopPx) / (stopMarkTopPx - startMarkTopPx);
+
+    let fluidName = "Water";
+    let trial = 1;
+    let status = "ready";
+    let elapsed = 0;
+    let results = [];
+    let runTimingTime = null;
+    let startTime = null;
+    let timerInterval = null;
+    let startDelay = null;
+
+    const fluidSelect = document.getElementById("fluidSelect");
+    const trialSelect = document.getElementById("trialSelect");
+    const viscosityText = document.getElementById("viscosityText");
+    const densityText = document.getElementById("densityText");
+    const statusText = document.getElementById("statusText");
+    const timeDisplay = document.getElementById("timeDisplay");
+    const dropButton = document.getElementById("dropButton");
+    const stopButton = document.getElementById("stopButton");
+    const resetButton = document.getElementById("resetButton");
+    const clearButton = document.getElementById("clearButton");
+    const recordedNotice = document.getElementById("recordedNotice");
+    const fluidFill = document.getElementById("fluidFill");
+    const ball = document.getElementById("ball");
+    const resultsBody = document.getElementById("resultsBody");
+
+    function dragCoefficient(re) {
+      if (!Number.isFinite(re) || re <= 0) return 0;
+      if (re < 0.1) return 24 / re;
+      if (re < 1000) return (24 / re) * (1 + 0.15 * Math.pow(re, 0.687));
+      return 0.44;
+    }
+
+    function terminalVelocity(fluid) {
+      const d = 2 * ballRadiusMeters;
+      const volume = (4 / 3) * Math.PI * Math.pow(ballRadiusMeters, 3);
+      const area = Math.PI * Math.pow(ballRadiusMeters, 2);
+      const apparentWeight = Math.max((ballDensity - fluid.density) * volume * g, 0);
+      if (apparentWeight <= 0) return { velocity: 0, reynolds: 0, cd: 0, model: "Ball would not sink" };
+
+      let v = Math.max(
+        (2 * Math.pow(ballRadiusMeters, 2) * (ballDensity - fluid.density) * g) / (9 * fluid.viscosityPaS),
+        0.000001
+      );
+
+      for (let i = 0; i < 80; i++) {
+        const re = (fluid.density * v * d) / fluid.viscosityPaS;
+        const cd = dragCoefficient(re);
+        const nextV = Math.sqrt((2 * apparentWeight) / (fluid.density * cd * area));
+        if (Math.abs(nextV - v) < 1e-7) {
+          v = nextV;
+          break;
+        }
+        v = 0.55 * v + 0.45 * nextV;
+      }
+
+      const reynolds = (fluid.density * v * d) / fluid.viscosityPaS;
+      const cd = dragCoefficient(reynolds);
+      const model = reynolds < 0.1 ? "Stokes limit" : reynolds < 1000 ? "Schiller-Naumann" : "Newtonian drag approx.";
+      return { velocity: v, reynolds, cd, model };
+    }
+
+    function addTimingNoise(timeSeconds) {
+      const randomFraction = (Math.random() * 2 - 1) * noiseFraction;
+      return timeSeconds * (1 + randomFraction);
+    }
+
+    function getFluid() {
+      return fluids.find(f => f.name === fluidName) || fluids[0];
+    }
+
+    function getPhysics() {
+      return terminalVelocity(getFluid());
+    }
+
+    function getBaseDisplayTime() {
+      const physics = getPhysics();
+      const modelTime = physics.velocity > 0 ? distanceMeters / physics.velocity : 0;
+      return Math.min(Math.max(modelTime, 1.2), 18);
+    }
+
+    function clearTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      if (startDelay) {
+        clearTimeout(startDelay);
+        startDelay = null;
+      }
+    }
+
+    function setStatus(nextStatus) {
+      status = nextStatus;
+      render();
+    }
+
+    function startTimer() {
+      startTime = performance.now();
+      elapsed = 0;
+      setStatus("timing");
+      timerInterval = setInterval(() => {
+        elapsed = (performance.now() - startTime) / 1000;
+        timeDisplay.textContent = `${elapsed.toFixed(2)} s`;
+      }, 20);
+    }
+
+    function animateBall(durationSeconds) {
+      ball.style.transition = "none";
+      ball.style.top = `${animationStartTopPx}px`;
+      void ball.offsetWidth;
+      ball.style.transition = `top ${durationSeconds}s linear`;
+      ball.style.top = `${ballStopTopPx}px`;
+    }
+
+    function dropBall() {
+      clearTimer();
+      const noisyTime = addTimingNoise(getBaseDisplayTime());
+      runTimingTime = noisyTime;
+      elapsed = 0;
+      timeDisplay.textContent = "0.00 s";
+      setStatus("dropping to start mark");
+      animateBall(noisyTime * (1 + approachFraction));
+      startDelay = setTimeout(startTimer, noisyTime * approachFraction * 1000);
+    }
+
+    function stopWatch() {
+      if (status !== "timing") return;
+      clearTimer();
+      const finalTime = startTime ? (performance.now() - startTime) / 1000 : elapsed;
+      elapsed = finalTime;
+      timeDisplay.textContent = `${elapsed.toFixed(2)} s`;
+      setStatus("stopped");
+
+      const fluid = getFluid();
+      const physics = getPhysics();
+      const modelTime = physics.velocity > 0 ? distanceMeters / physics.velocity : 0;
+      const velocityMeasured = distanceMeters / finalTime;
+
+      results = results.filter(r => r.trial !== trial);
+      results.push({
+        trial,
+        fluid: fluid.name,
+        viscosityPaS: fluid.viscosityPaS,
+        time: finalTime,
+        distance: distanceMeters,
+        velocity: velocityMeasured,
+        modelTime,
+        modelVelocity: physics.velocity,
+        reynolds: physics.reynolds
+      });
+      results.sort((a, b) => a.trial - b.trial);
+      render();
+    }
+
+    function resetTrial() {
+      clearTimer();
+      elapsed = 0;
+      runTimingTime = null;
+      ball.style.transition = "none";
+      ball.style.top = `${animationStartTopPx}px`;
+      setStatus("ready");
+    }
+
+    function clearAll() {
+      clearTimer();
+      elapsed = 0;
+      runTimingTime = null;
+      results = [];
+      ball.style.transition = "none";
+      ball.style.top = `${animationStartTopPx}px`;
+      setStatus("ready");
+    }
+
+    function renderFluidOptions() {
+      fluidSelect.innerHTML = fluids.map(f => `<option value="${f.name}">${f.name}</option>`).join("");
+      fluidSelect.value = fluidName;
+    }
+
+    function renderTrialOptions() {
+      trialSelect.innerHTML = trialNumbers.map(n => `<option value="${n}">Trial ${n}</option>`).join("");
+      trialSelect.value = String(trial);
+    }
+
+    function renderResults() {
+      resultsBody.innerHTML = trialNumbers.map(n => {
+        const row = results.find(r => r.trial === n);
+        return `<tr>
+          <td><strong>${n}</strong></td>
+          <td>${row ? row.fluid : "—"}</td>
+          <td class="right">${row ? row.viscosityPaS.toExponential(2) : "—"}</td>
+          <td class="right">${row ? `${row.time.toFixed(2)} s` : "—"}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    function render() {
+      const fluid = getFluid();
+      viscosityText.textContent = `Viscosity, μ: ${fluid.viscosityPaS.toExponential(2)} Pa·s`;
+      densityText.textContent = `Density: ${fluid.density} kg/m³`;
+      fluidFill.style.background = `linear-gradient(to bottom, ${fluid.color}55, ${fluid.color}dd)`;
+      statusText.textContent = status;
+      timeDisplay.textContent = `${elapsed.toFixed(2)} s`;
+      dropButton.disabled = status === "dropping to start mark" || status === "timing";
+      stopButton.disabled = status !== "timing";
+      recordedNotice.style.display = results.some(r => r.trial === trial) ? "block" : "none";
+      renderResults();
+    }
+
+    fluidSelect.addEventListener("change", (event) => {
+      fluidName = event.target.value;
+      resetTrial();
+      render();
+    });
+
+    trialSelect.addEventListener("change", (event) => {
+      trial = Number(event.target.value);
+      resetTrial();
+      render();
+    });
+
+    dropButton.addEventListener("click", dropBall);
+    stopButton.addEventListener("click", stopWatch);
+    resetButton.addEventListener("click", resetTrial);
+    clearButton.addEventListener("click", clearAll);
+
+    renderFluidOptions();
+    renderTrialOptions();
+    render();
+  </script>
+</body>
+</html>
